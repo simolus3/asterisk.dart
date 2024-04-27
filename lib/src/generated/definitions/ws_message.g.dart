@@ -25,6 +25,18 @@ ChannelDestroyed _$ChannelDestroyedFromJson(Map<String, dynamic> json) =>
       timestamp: DateTime.parse(json['timestamp'] as String),
     );
 
+ChannelDtmfReceived _$ChannelDtmfReceivedFromJson(Map<String, dynamic> json) =>
+    ChannelDtmfReceived(
+      channel: Channel.fromJson(json['channel'] as Map<String, dynamic>),
+      duration: ChannelDtmfReceived._durationFromMillis(
+          (json['duration_ms'] as num).toInt()),
+      digit: json['digit'] as String,
+      type: json['type'] as String,
+      asteriskId: json['asterisk_id'] as String,
+      application: json['application'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+    );
+
 ChannelStateChange _$ChannelStateChangeFromJson(Map<String, dynamic> json) =>
     ChannelStateChange(
       channel: Channel.fromJson(json['channel'] as Map<String, dynamic>),

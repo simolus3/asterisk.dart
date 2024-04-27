@@ -39,4 +39,6 @@ final class MediaSource {
 
   MediaSource.sound(String id) : uri = Uri(scheme: 'sound', path: id);
   MediaSource.digits(String digits) : uri = Uri(scheme: 'digits', path: digits);
+  MediaSource.recording(String name)
+      : uri = Uri(scheme: 'recording', path: name);
 }

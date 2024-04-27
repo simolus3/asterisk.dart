@@ -1,0 +1,82 @@
+diff --git a/Phone/index.html b/Phone/index.html
+index 06e2b43..b972565 100644
+--- a/Phone/index.html
++++ b/Phone/index.html
+@@ -17,16 +17,6 @@
+         <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#292929">
+         <link rel="apple-touch-icon" type="image/png" href="icons/512.png">
+         <link rel="manifest" type="application/manifest+json" href="manifest.json">
+-        <script type="text/javascript">
+-            // If you don't want to use a service worker, you can just take this code out.
+-            if ('serviceWorker' in navigator) {
+-                navigator.serviceWorker.register("sw.js").catch(function(error) {
+-                    console.error('Service Worker Error', error);
+-                });
+-            } else {
+-                console.warn("Cannot make use of ServiceWorker");
+-            }
+-        </script>
+ 
+         <!-- Cache -->
+         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+@@ -46,7 +36,24 @@
+         <script type="text/javascript">
+             // Provision runtime options can go here.
+             var phoneOptions = {
+-                loadAlternateLang: true
++                loadAlternateLang: true,
++            };
++            var defaultOptions = {
++                SipUsername: '201',
++                SipPassword: 'demo',
++                ServerPath: '/ws',
++                SipDomain: 'localhost',
++                wssServer: 'localhost',
++                WebSocketPort: '8088',
++                profileName: 'Asterisk Dart Demo',
++            };
++
++            // Store defaults in localStorage so that they show up in the settings
++            // screen.
++            for (const key in defaultOptions) {
++                if (!(key in window.localStorage)) {
++                    window.localStorage[key] = defaultOptions[key];
++                }
+             }
+ 
+             // Occurs after the language file is loaded
+@@ -174,4 +181,4 @@
+     <script type="text/javascript" src="https://dtd6jl0d42sve.cloudfront.net/lib/Croppie/Croppie-2.6.4/croppie.min.js" defer="true"></script>
+     <script type="text/javascript" src="https://dtd6jl0d42sve.cloudfront.net/lib/XMPP/strophe-1.4.1.umd.min.js" defer="true"></script>
+ 
+-</html>
+\ No newline at end of file
++</html>
+diff --git a/Phone/phone.js b/Phone/phone.js
+index 22d10c8..d89578b 100644
+--- a/Phone/phone.js
++++ b/Phone/phone.js
+@@ -51,6 +51,7 @@ welcomeScreen += "POSSIBILITY OF SUCH DAMAGES.\n";
+ welcomeScreen += "\n";
+ welcomeScreen += "============================================================================\n</pre>";
+ welcomeScreen += "</div>";
++welcomeScreen = null;
+ 
+ /**
+  * Language Packs (lang/xx.json)
+@@ -1931,7 +1932,7 @@ function CreateUserAgent() {
+         logConfiguration: false,            // If true, constructor logs the registerer configuration.
+         uri: SIP.UserAgent.makeURI("sip:"+ SipUsername + "@" + SipDomain),
+         transportOptions: {
+-            server: "wss://"+ wssServer +":"+ WebSocketPort +""+ ServerPath,
++            server: "ws://"+ wssServer +":"+ WebSocketPort +""+ ServerPath,
+             traceSip: false,
+             connectionTimeout: TransportConnectionTimeout
+             // keepAliveInterval: 30 // Uncomment this and make this any number greater then 0 for keep alive... 
+@@ -15329,4 +15330,4 @@ var reconnectXmpp = function(){
+     console.log("XMPP connect...");
+ 
+     XMPP.connect(xmpp_username, xmpp_password, onStatusChange);
+-}
+\ No newline at end of file
++}

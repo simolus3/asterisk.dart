@@ -3,6 +3,7 @@ import '../definitions/playback.dart';
 import '../definitions/ws_message.dart';
 import 'object.dart';
 import 'playback.dart';
+import 'recording.dart';
 
 final class LiveChannel extends LiveObject<Channel> {
   LiveChannel(super.asterisk, super.latest, super.subscribedByDefault);
@@ -43,6 +44,36 @@ final class LiveChannel extends LiveObject<Channel> {
     await asterisk.api.channels.hangup(channel.id);
   }
 
+  /// Dials a channel created with [Asterisk.createChannel].
+  Future<void> dial({Duration? timeout}) async {
+    _checkNotClosed();
+    await asterisk.api.channels.dial(channel.id, timeout?.inSeconds);
+  }
+
+  Future<LiveRecording> record({
+    required String name,
+    required String format,
+    Duration? maxDuration,
+    Duration? maxSilence,
+    bool beep = false,
+    String? terminateOn,
+    RecordingExistsBehavior ifExists = RecordingExistsBehavior.fail,
+  }) async {
+    final response = await asterisk.api.channels.record(
+      channel.id,
+      name: name,
+      format: format,
+      maxDurationSeconds: maxDuration?.inSeconds ?? 0,
+      maxSilenceSeconds: maxSilence?.inSeconds ?? 0,
+      beep: beep,
+      ifExists: ifExists.name,
+      terminateOn: terminateOn ?? 'none',
+    );
+
+    return asterisk.recognizeLiveObject(
+        response, (raw) => LiveRecording(asterisk, raw, true));
+  }
+
   Future<LivePlayback> play({required Iterable<MediaSource> sources}) async {
     _checkNotClosed();
     final response = await asterisk.api.channels.play(
@@ -63,4 +94,17 @@ final class LiveChannel extends LiveObject<Channel> {
       _markClosed();
     }
   }
+}
+
+/// The behavior Asterisk should follow when [LiveChannel.record] is called but
+/// a recording with the same name already exists.
+enum RecordingExistsBehavior {
+  /// Reject the new recording.
+  fail,
+
+  /// Overwrite the existing recording.
+  overwrite,
+
+  /// Append the new recording onto the existing snippet.
+  append,
 }

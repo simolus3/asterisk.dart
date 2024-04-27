@@ -4,6 +4,7 @@ import 'package:http/http.dart';
 
 import 'definitions/application.dart';
 import 'definitions/bridge.dart';
+import 'definitions/channel.dart';
 import 'definitions/common.dart';
 import 'definitions/endpoint.dart';
 import 'definitions/playback.dart';
@@ -25,11 +26,14 @@ final class AsteriskApi {
 
   late final BridgesApi bridges = BridgesApi(this);
   late final ChannelsApi channels = ChannelsApi(this);
+  late final RecordingsApi recordings = RecordingsApi(this);
 
   Future<StreamedResponse> _makeRequest({
     String method = 'GET',
     Map<String, String>? queryParameters,
     required String path,
+    String? body,
+    Map<String, String>? headers,
   }) async {
     var uri = _baseUri.resolve(path);
     if (queryParameters != null) {
@@ -38,6 +42,12 @@ final class AsteriskApi {
 
     final request = Request(method, uri)
       ..headers['Accept'] = 'application/json';
+    if (body != null) {
+      request.body = body;
+    }
+    if (headers != null) {
+      request.headers.addAll(headers);
+    }
 
     return await _httpClient.send(request);
   }
@@ -47,9 +57,15 @@ final class AsteriskApi {
     Map<String, String>? queryParameters,
     required String path,
     required T Function(J) fromJson,
+    Object? body,
   }) async {
     final response = await _makeRequest(
-        path: path, method: method, queryParameters: queryParameters);
+      path: path,
+      method: method,
+      queryParameters: queryParameters,
+      body: body != null ? json.encode(body) : null,
+      headers: body != null ? {'Content-Type': 'application/json'} : null,
+    );
     return await response.stream
         .transform(_jsonUtf8.decoder)
         .cast<J>()
@@ -154,6 +170,33 @@ final class ChannelsApi {
 
   ChannelsApi(this._api);
 
+  Future<Channel> createChannel({
+    required String endpoint,
+    required String app,
+    String? appArgs,
+    String? originator,
+    String? channelId,
+    String? otherChannelId,
+    Iterable<String>? formats,
+    Map<String, String>? variables,
+  }) async {
+    return _api._jsonCall(
+      path: 'channels/create',
+      fromJson: Channel.fromJson,
+      method: 'POST',
+      body: {
+        'endpoint': endpoint,
+        'app': app,
+        if (appArgs != null) 'appArgs': appArgs,
+        if (channelId != null) 'channelId': channelId,
+        if (otherChannelId != null) 'otherChannelId': otherChannelId,
+        if (originator != null) 'originator': originator,
+        if (formats != null) 'formats': formats.join(','),
+        if (variables != null) 'variables': variables,
+      },
+    );
+  }
+
   Future<void> answer(String channel) async {
     await _api._makeRequest(path: 'channels/$channel/answer', method: 'POST');
   }
@@ -168,6 +211,16 @@ final class ChannelsApi {
 
   Future<void> hangup(String channel) async {
     await _api._makeRequest(path: 'channels/$channel', method: 'DELETE');
+  }
+
+  Future<void> dial(String channel, int? timeoutInSeconds) async {
+    await _api._makeRequest(
+      path: 'channels/$channel/dial',
+      method: 'POST',
+      queryParameters: {
+        if (timeoutInSeconds != null) 'timeout': timeoutInSeconds.toString(),
+      },
+    );
   }
 
   Future<Playback> play(String channel, String media) async {
@@ -202,6 +255,35 @@ final class ChannelsApi {
         'terminateOn': terminateOn,
       },
       fromJson: Recording.fromJson,
+    );
+  }
+}
+
+class RecordingsApi {
+  final AsteriskApi _api;
+
+  RecordingsApi(this._api);
+
+  Future<StreamedResponse> storedContents(String recording) {
+    return _api._makeRequest(path: 'recordings/stored/$recording/file');
+  }
+
+  Future<void> deleteStored(String recording) async {
+    await _api._makeRequest(
+        path: 'recordings/stored/$recording', method: 'DELETE');
+  }
+
+  Future<void> deleteLive(String recording) async {
+    await _api._makeRequest(
+        path: 'recordings/live/$recording', method: 'DELETE');
+  }
+
+  Future<void> stopAndStoreLive(String recording,
+      {required String recordingName}) async {
+    await _api._makeRequest(
+      path: 'recordings/live/$recording/stop',
+      method: 'POST',
+      queryParameters: {'recordingName': recordingName},
     );
   }
 }

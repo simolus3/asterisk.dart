@@ -1,6 +1,6 @@
 # Asterisk
 
-[Asterisk](https://www.asterisk.org/)is "an open-source framework for building
+[Asterisk](https://www.asterisk.org/) is "an open-source framework for building
 communications applications".
 `package:asterisk` is a package for writing these communication applications in
 Dart!
@@ -40,12 +40,32 @@ calls. You can record calls and play sounds, but this isn't a softphone.
 
 Using this package requires a running Asterisk server. To interact with the
 actual phone network, you need a VoIP provider that server can talk to.
-For testing, you can emulate a local phone network. This package contains
-container images to set that up. You can run `dart run tool/local_phones.dart`
-to start a server emulating phone calls via WebRTC.
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+### Local testing
+
+For testing, you can emulate a local phone network, placing calls in a web
+browser thanks to WebRTC.
+To get started, run
+
+```
+docker run -ti --network host ghcr.io/simolus3/asterisk_demo:latest
+```
+
+Starting asterisk will print a lot of errors as it tires to load a lot of
+modules we don't need - once it prints "Asterisk Ready.", the system is ready
+to go.
+
+Visit http://localhost:8088/. When opening the website for the first time, a
+settings screen will be shown.
+You need to enter a SIP username under "Account" - the server will accept
+`201`, `202`, `203`, `204` or `205`. They all use `demo` as their passsword and
+are reachable by dialing their account number.
+
+Next, run an example to call:
+
+```
+dart run example/whoami.dart
+```
 
 ## Usage
 

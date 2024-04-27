@@ -18,6 +18,7 @@ sealed class Message {
     final type = json['type'];
     return switch (type) {
       'ChannelDestroyed' => ChannelDestroyed.fromJson(json),
+      'ChannelDtmfReceived' => ChannelDtmfReceived.fromJson(json),
       'ChannelStateChange' => ChannelStateChange.fromJson(json),
       'ChannelTakingFinished' => ChannelTalkingFinished.fromJson(json),
       'ChannelTakingStarted' => ChannelTalkingStarted.fromJson(json),
@@ -99,6 +100,34 @@ class ChannelDestroyed extends Event implements HasChannel {
 
   factory ChannelDestroyed.fromJson(JsonObject json) =>
       _$ChannelDestroyedFromJson(json);
+}
+
+@JsonSerializable()
+class ChannelDtmfReceived extends Event implements HasChannel {
+  @override
+  final Channel channel;
+
+  final String digit;
+
+  @JsonKey(name: 'duration_ms', fromJson: _durationFromMillis)
+  final Duration duration;
+
+  ChannelDtmfReceived({
+    required this.channel,
+    required this.duration,
+    required this.digit,
+    required super.type,
+    required super.asteriskId,
+    required super.application,
+    required super.timestamp,
+  });
+
+  factory ChannelDtmfReceived.fromJson(JsonObject json) =>
+      _$ChannelDtmfReceivedFromJson(json);
+
+  static Duration _durationFromMillis(int millis) {
+    return Duration(milliseconds: millis);
+  }
 }
 
 @JsonSerializable()

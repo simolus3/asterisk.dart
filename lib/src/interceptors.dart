@@ -37,7 +37,7 @@ final class ThrowOnError with BaseClient {
     final response = await _inner.send(request);
     if (response.statusCode case >= 400 && <= 599) {
       JsonObject? body;
-      if (response.headers['Content-Type'] == 'application/json') {
+      if (response.headers['content-type'] == 'application/json') {
         try {
           body = await response.stream.transform(json.fuse(utf8).decoder).first
               as JsonObject?;

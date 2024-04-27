@@ -3,12 +3,14 @@ library asterisk;
 import 'dart:convert';
 
 export 'src/definitions/bridge.dart';
+export 'src/definitions/channel.dart';
 export 'src/definitions/playback.dart' show MediaSource;
 export 'src/definitions/ws_message.dart';
 export 'src/live/bridge.dart';
 export 'src/live/channel.dart';
 export 'src/live/endpoint.dart';
 export 'src/live/playback.dart';
+export 'src/live/recording.dart';
 
 import 'package:http/http.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -80,5 +82,24 @@ abstract interface class Asterisk {
   Future<LiveBridge> createBridge({
     required String name,
     required Iterable<BridgeType> types,
+  });
+
+  /// Creates a new channel.
+  ///
+  /// The channel will be posted towards the stasis application given in
+  /// [applicationName] (defaults to the current application). So in addition to
+  /// the [LiveChannel] returned by this call, the channel will also be posted
+  /// to [stasisStart].
+  ///
+  /// Asterisk docs: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#create
+  Future<LiveChannel> createChannel({
+    String? applicationName,
+    required String endpoint,
+    String? appArgs,
+    String? channelId,
+    String? otherChannelId,
+    String? originator,
+    Iterable<String>? formats,
+    Map<String, String>? variables,
   });
 }

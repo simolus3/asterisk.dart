@@ -1,0 +1,16 @@
+LABEL org.opencontainers.image.source=https://github.com/simolus3/asterisk.dart
+
+FROM alpine:3.19
+RUN apk add --no-cache asterisk asterisk-opus asterisk-sounds-en asterisk-sounds-moh asterisk-srtp git
+
+RUN git clone --depth 1 https://github.com/InnovateAsterisk/Browser-Phone.git /etc/Browser-Phone
+COPY browser_phone.patch /etc/Browser-Phone
+WORKDIR /etc/Browser-Phone
+RUN git apply browser_phone.patch
+RUN cp -r /etc/Browser-Phone/Phone/* /var/lib/asterisk/static-http/
+RUN chmod 744 /var/lib/asterisk/static-http/*
+
+COPY asterisk/* /etc/asterisk/
+
+WORKDIR /etc/asterisk
+ENTRYPOINT asterisk -c

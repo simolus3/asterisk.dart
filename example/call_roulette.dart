@@ -11,6 +11,7 @@ import '_credentials.dart';
 void main() async {
   final asterisk = createAsteriskClient();
   final roulette = CallRoulette(asterisk);
+  print('Starting up - dial number 1 to reach the call roulette service');
 
   await for (final incoming in asterisk.stasisStart) {
     roulette.addCall(incoming.channel);

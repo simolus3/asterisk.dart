@@ -79,4 +79,29 @@ final class AsteriskClient implements lib.Asterisk {
         .createBridge(name: name, type: types.map((e) => e.name).join(','));
     return recognizeLiveObject(response, (raw) => LiveBridge(this, raw, true));
   }
+
+  @override
+  Future<LiveChannel> createChannel({
+    String? applicationName,
+    required String endpoint,
+    String? appArgs,
+    String? channelId,
+    String? otherChannelId,
+    String? originator,
+    Iterable<String>? formats,
+    Map<String, String>? variables,
+  }) async {
+    final channel = await api.channels.createChannel(
+      endpoint: endpoint,
+      app: applicationName ?? this.applicationName,
+      appArgs: appArgs,
+      channelId: channelId,
+      originator: originator,
+      otherChannelId: otherChannelId,
+      formats: formats,
+      variables: variables,
+    );
+
+    return recognizeLiveObject(channel, (raw) => LiveChannel(this, raw, true));
+  }
 }
