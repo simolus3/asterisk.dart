@@ -11,6 +11,9 @@ enum EndpointState {
   online,
 }
 
+/// An endpoint as described by Asterisk.
+///
+/// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Asterisk_REST_Data_Models/#endpoint
 @JsonSerializable()
 class Endpoint implements EventSource {
   final String technology;

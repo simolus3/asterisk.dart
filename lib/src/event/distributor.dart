@@ -1,7 +1,11 @@
+@internal
+library;
+
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../asterisk.dart';
 import '../definitions/common.dart';

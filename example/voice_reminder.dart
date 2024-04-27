@@ -3,8 +3,13 @@ import 'package:async/async.dart';
 
 import '_credentials.dart';
 
-/// Accepts incoming calls, announces the caller id on the channel and then
-/// hangs up.
+/// A simple voice-based timer system.
+///
+/// This accepts incoming calls, in which the caller is expected to enter a
+/// duration in seconds using DTMF codes, followed by a number sign (`#`).
+/// After doing that, the rest of the incoming call is recorded. After it ends,
+/// this waits for the indicate duration and then calls back to play the
+/// recording as a reminder.
 void main() async {
   final asterisk = createAsteriskClient();
   print('Starting up - dial number 1 to set reminders');

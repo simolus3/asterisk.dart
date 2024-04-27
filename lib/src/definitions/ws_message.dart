@@ -49,10 +49,13 @@ sealed class Event extends Message {
   });
 }
 
+/// Superinterface for events with an associated [channel].
 abstract interface class HasChannel {
+  /// The [Channel] associated with this event.
   Channel get channel;
 }
 
+/// A message not yet supported by this package.
 final class UnknownMessage extends Message {
   final JsonObject json;
 

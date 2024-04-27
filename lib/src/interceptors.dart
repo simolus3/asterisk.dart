@@ -1,6 +1,10 @@
+@internal
+library;
+
 import 'dart:convert';
 
 import 'package:http/http.dart';
+import 'package:meta/meta.dart';
 
 import 'definitions/common.dart';
 import 'exception.dart';

@@ -16,6 +16,7 @@ List<T> Function(Object?) _decodeJsonList<T>(T Function(JsonObject) fromJson) {
   };
 }
 
+/// Direct bindings to the Asterisk RESTful interface.
 final class AsteriskApi {
   static final _jsonUtf8 = json.fuse(utf8);
 
@@ -24,8 +25,13 @@ final class AsteriskApi {
 
   AsteriskApi(this._baseUri, this._httpClient);
 
+  /// Methods related to bridges: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Bridges_REST_API/
   late final BridgesApi bridges = BridgesApi(this);
+
+  /// Methods related to channels: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/
   late final ChannelsApi channels = ChannelsApi(this);
+
+  /// Methods related to recordings: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Recordings_REST_API/
   late final RecordingsApi recordings = RecordingsApi(this);
 
   Future<StreamedResponse> _makeRequest({
@@ -75,11 +81,16 @@ final class AsteriskApi {
 
   // Applications
 
+  /// Lists all applications currently registered against this Asterisk server.
   Future<List<Application>> listApplications() {
     return _jsonCall(
         path: 'applications', fromJson: _decodeJsonList(Application.fromJson));
   }
 
+  /// Subscribes an application to the given [eventSource].
+  ///
+  /// This package uses this on-demand to signal interest after a stream on a
+  /// [LiveObject] is listened to.
   Future<Application> subscribe(String name, String eventSource) {
     return _jsonCall(
       method: 'POST',
@@ -89,6 +100,10 @@ final class AsteriskApi {
     );
   }
 
+  /// Unsubscribes an application from the given [eventSource].
+  ///
+  /// This package uses this after subscriptions on a [LiveObject] stream are
+  /// cancelled to avoid receiving superfluous messages.
   Future<Application> unsubscribe(String name, String eventSource) {
     return _jsonCall(
       method: 'DELETE',
@@ -100,17 +115,20 @@ final class AsteriskApi {
 
   // Endpoints
 
+  /// Lists all endpoints currently known to Asterisk.
   Future<List<Endpoint>> listEndpoints() {
     return _jsonCall(
         path: 'endpoints', fromJson: _decodeJsonList(Endpoint.fromJson));
   }
 }
 
+/// Methods related to bridges: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Bridges_REST_API/
 final class BridgesApi {
   final AsteriskApi _api;
 
   BridgesApi(this._api);
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Bridges_REST_API/#create
   Future<Bridge> createBridge({
     required String name,
     required String type,
@@ -126,6 +144,7 @@ final class BridgesApi {
     );
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Bridges_REST_API/#addchannel
   Future<void> addChannel({
     required String bridge,
     required String channel,
@@ -145,6 +164,7 @@ final class BridgesApi {
     );
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Bridges_REST_API/#removechannel
   Future<void> removeChannel({
     required String bridge,
     required String channel,
@@ -157,6 +177,7 @@ final class BridgesApi {
         });
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Bridges_REST_API/#destroy
   Future<void> destroy(String bridge) async {
     await _api._makeRequest(
       path: 'bridges/$bridge',
@@ -165,11 +186,13 @@ final class BridgesApi {
   }
 }
 
+/// Methods related to channels: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/
 final class ChannelsApi {
   final AsteriskApi _api;
 
   ChannelsApi(this._api);
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#create
   Future<Channel> createChannel({
     required String endpoint,
     required String app,
@@ -197,22 +220,27 @@ final class ChannelsApi {
     );
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#answer
   Future<void> answer(String channel) async {
     await _api._makeRequest(path: 'channels/$channel/answer', method: 'POST');
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#answer
   Future<void> startRinging(String channel) async {
     await _api._makeRequest(path: 'channels/$channel/ring', method: 'POST');
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#ringstop
   Future<void> stopRinging(String channel) async {
     await _api._makeRequest(path: 'channels/$channel/ring', method: 'DELETE');
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#hangup
   Future<void> hangup(String channel) async {
     await _api._makeRequest(path: 'channels/$channel', method: 'DELETE');
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#dial
   Future<void> dial(String channel, int? timeoutInSeconds) async {
     await _api._makeRequest(
       path: 'channels/$channel/dial',
@@ -223,6 +251,7 @@ final class ChannelsApi {
     );
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#play
   Future<Playback> play(String channel, String media) async {
     return await _api._jsonCall(
       path: 'channels/$channel/play',
@@ -232,6 +261,7 @@ final class ChannelsApi {
     );
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#record
   Future<Recording> record(
     String channel, {
     required String name,
@@ -259,25 +289,30 @@ final class ChannelsApi {
   }
 }
 
+/// Methods related to recordings: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Recordings_REST_API/
 class RecordingsApi {
   final AsteriskApi _api;
 
   RecordingsApi(this._api);
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Recordings_REST_API/#getstoredfile
   Future<StreamedResponse> storedContents(String recording) {
     return _api._makeRequest(path: 'recordings/stored/$recording/file');
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Recordings_REST_API/#deletestored
   Future<void> deleteStored(String recording) async {
     await _api._makeRequest(
         path: 'recordings/stored/$recording', method: 'DELETE');
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Recordings_REST_API/#deletestored
   Future<void> deleteLive(String recording) async {
     await _api._makeRequest(
         path: 'recordings/live/$recording', method: 'DELETE');
   }
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Recordings_REST_API/#stop
   Future<void> stopAndStoreLive(String recording,
       {required String recordingName}) async {
     await _api._makeRequest(

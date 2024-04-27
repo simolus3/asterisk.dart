@@ -23,13 +23,26 @@ import 'src/live/bridge.dart';
 import 'src/live/channel.dart';
 import 'src/live/endpoint.dart';
 
+/// An event emitted by [Asterisk.stasisStart] when a channel is placed into
+/// this application.
 typedef StasisStart = ({List<String> args, LiveChannel channel});
 
+/// A client to the Asterisk RESTful API as well as its event notification
+/// system through websockets.
 abstract interface class Asterisk {
   /// Access to the raw ARI api.
   AsteriskApi get api;
+
+  /// The name of this application.
   String get applicationName;
 
+  /// Creates a new Asterisk client from the [baseUri] to connect to as well
+  /// as application credentials ([username] and [password] as well as the
+  /// [applicationName] to register).
+  ///
+  /// The [baseUri] should not contain the `ari/` path, just the host of the
+  /// server. So if your Asterisk is available under `https://asterisk.example.com/ari`,
+  /// the [baseUri] should be `https://asterisk.example.com/`.
   factory Asterisk({
     required Uri baseUri,
     required String applicationName,
@@ -74,9 +87,25 @@ abstract interface class Asterisk {
     );
   }
 
+  /// Closes pending requests and the web socket notification to Asterisk.
+  ///
+  /// This does not automatically hang up channels or other Asterisk resources
+  /// initiated by this application.
   Future<void> close();
 
+  /// A stream of channels and arguments passed to this application.
+  ///
+  /// This stream emits an event everytime a channel is placed into this
+  /// application via the `Stasis` dialplan function, but also for calls
+  /// created or initiated by this application.
+  ///
+  /// Typically, ARI applications would listen to this stream to start handling
+  /// incoming calls.
   Stream<StasisStart> get stasisStart;
+
+  /// A list of all endpoints registered to Asterisk.
+  ///
+  ///
   Future<List<LiveEndpoint>> get endpoints;
 
   Future<LiveBridge> createBridge({
