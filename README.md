@@ -26,15 +26,36 @@ interface as well as the web-socket notification mechanism for events.
 Here are just some of the things you can build with this package:
 
 - An automated voicemail system.
-- Voice-based timers.
-- Call-Roulette.
+- [Voice-based timers](https://github.com/simolus3/asterisk.dart/blob/main/example/voice_reminder.dart).
+- [Call-Roulette](https://github.com/simolus3/asterisk.dart/blob/main/example/call_roulette.dart)!
 - Your very own telephone conference setup.
 - A customer service system, with hold queues and everything.
 
-There are even more examples in `examples/` - go check them out!
+Some of these have already been implemented in `examples/` - go check them
+out!
 
 However, note that this package doesn't support real-time interaction with
 calls. You can record calls and play sounds, but this isn't a softphone.
+Of course, you could use [Flutter WebRTC](https://flutter-webrtc.org/) to write
+a voice-enabled Flutter app that can be called through an Asterisk managed
+by this package.
+
+The following features from the Asterisk RESTful interface are supported from
+this package:
+
+- Reacting to events from channels, bridges, recordings, playbacks, endpoints
+  and so on in a reactive way (exposed as a Dart `Stream`).
+- Calls:
+  - Receiving incoming calls through `STASIS` in a dialplan.
+  - Setting the ringing state, accepting and rejecting calls.
+  - Making outgoing calls.
+  - Playing sounds.
+  - Starting recordings.
+- Bridges:
+  - Can be created, watched and destroyed.
+  - Channels can be added and removed out of bridges.
+- Endpoints:
+  - Can be listed and watched
 
 ## Getting started
 
@@ -67,11 +88,42 @@ Next, run an example to call:
 dart run example/whoami.dart
 ```
 
+All examples are reachable in the demo server by dialing `1`.
+
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+This simple Asterisk application that accepts incoming calls, announces the
+caller id on the channel and then hangs up:
 
 ```dart
-const like = 'sample';
+import 'package:asterisk/asterisk.dart';
+
+void main() async {
+  final asterisk = Asterisk(
+    baseUri: Uri.parse('http://localhost:8088'),
+    applicationName: 'demo',
+    username: 'demoapp',
+    password: 'demo',
+  );
+  await for (final incoming in asterisk.stasisStart) {
+    _announceId(incoming.channel);
+  }
+}
+
+Future<void> _announceId(LiveChannel channel) async {
+  print('Has incoming call from ${channel.channel.caller}');
+
+  await channel.answer();
+  await Future.delayed(const Duration(seconds: 1));
+
+  final playback = await channel
+      .play(sources: [MediaSource.digits(channel.channel.caller.number)]);
+  // Wait for the playback to finish.
+  await playback.events.where((e) => e is PlaybackFinished).first;
+
+  if (!channel.isClosed) {
+    await channel.hangUp();
+  }
+}
+
 ```
