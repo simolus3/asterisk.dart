@@ -4,6 +4,7 @@ tags:
 
 presets:
   ci_unit_tests:
+    concurrency: 1
     tags:
       skip_during_development:
         skip: false

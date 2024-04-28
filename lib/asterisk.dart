@@ -1,3 +1,43 @@
+/// Dart bindings to the [Asterisk RESTful interface](https://docs.asterisk.org/Configuration/Interfaces/Asterisk-REST-Interface-ARI/).
+///
+/// The [Asterisk] class is the main entrypoint bundling all available
+/// functionality. It can be used to connect to Asterisk and handle calls passed
+/// to an application:
+///
+/// ```dart
+/// import 'package:asterisk/asterisk.dart';
+///
+/// void main() async {
+///   final asterisk = Asterisk(
+///     baseUri: Uri.parse('http://localhost:8088'),
+///     applicationName: 'demo',
+///     username: 'demoapp',
+///     password: 'demo',
+///   );
+///   await for (final incoming in asterisk.stasisStart) {
+///     _announceId(incoming.channel);
+///   }
+/// }
+///
+/// Future<void> _announceId(LiveChannel channel) async {
+///   print('Has incoming call from ${channel.channel.caller}');
+///
+///   await channel.answer();
+///   await Future.delayed(const Duration(seconds: 1));
+///
+///   final playback = await channel
+///       .play(sources: [MediaSource.digits(channel.channel.caller.number)]);
+///   // Wait for the playback to finish.
+///   await playback.events.where((e) => e is PlaybackFinished).first;
+///
+///   if (!channel.isClosed) {
+///     await channel.hangUp();
+///   }
+/// }
+/// ```
+///
+/// Also see the [repository](https://github.com/simolus3/asterisk.dart) for
+/// its readme and more details.
 library asterisk;
 
 import 'dart:convert';

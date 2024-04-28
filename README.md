@@ -68,7 +68,7 @@ are reachable by dialing their account number.
 Next, run an example to call:
 
 ```
-dart run example/whoami.dart
+dart run example/main.dart
 ```
 
 All examples are reachable in the demo server by dialing `1`.
@@ -108,5 +108,4 @@ Future<void> _announceId(LiveChannel channel) async {
     await channel.hangUp();
   }
 }
-
 ```
