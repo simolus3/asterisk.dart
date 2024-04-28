@@ -13,10 +13,30 @@ import '../definitions/bridge.dart';
 final class LiveBridge extends LiveObject<Bridge> {
   LiveBridge(super.asterisk, super.latest, super.subscribedByDefault);
 
-  Future<void> addChannels(Iterable<String> channels) async {
+  /// Adds the [channels] to this bridge, forwarding media between them.
+  ///
+  /// If [absorbDTMF] is set (it defaults to `false`), DTMF events from the
+  /// channel are not forwarded into the bridge.
+  /// If [mute] is set (defaults to `false`), audio from the channel is not
+  /// forwarded into the bridge.
+  /// If [inhibitConnectedLineUpdates] is set (defaults to `false`), the
+  /// identity of the newly connected channels is not presented to other bridge
+  /// members.
+  /// Also see the [Asterisk docs].
+  ///
+  /// [Asterisk docs]: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Bridges_REST_API/#addchannel
+  Future<void> addChannels(
+    Iterable<String> channels, {
+    bool absorbDTMF = false,
+    bool mute = false,
+    bool inhibitConnectedLineUpdates = false,
+  }) async {
     await asterisk.api.bridges.addChannel(
       bridge: latestSnapshot.id,
       channel: channels.join(','),
+      absorbDTMF: absorbDTMF,
+      mute: mute,
+      inhibitConnectedLineUpdates: inhibitConnectedLineUpdates,
     );
   }
 

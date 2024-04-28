@@ -42,10 +42,12 @@ library asterisk;
 
 import 'dart:convert';
 
+export 'src/api.dart';
 export 'src/definitions/bridge.dart';
 export 'src/definitions/channel.dart';
 export 'src/definitions/playback.dart' show MediaSource;
 export 'src/definitions/ws_message.dart';
+export 'src/exception.dart';
 export 'src/live/bridge.dart';
 export 'src/live/channel.dart';
 export 'src/live/endpoint.dart';
@@ -155,6 +157,11 @@ abstract interface class Asterisk {
   ///
   Future<List<LiveEndpoint>> get endpoints;
 
+  /// Creates a new bridge with the given [name] supporting the desired briding
+  /// [types].
+  ///
+  /// Channels can later be placed into the bridge by using
+  /// [LiveBridge.addChannels].
   Future<LiveBridge> createBridge({
     required String name,
     required Iterable<BridgeType> types,
@@ -178,4 +185,21 @@ abstract interface class Asterisk {
     Iterable<String>? formats,
     Map<String, String>? variables,
   });
+
+  /// Creates a new channel to the the [endpoint] and places it into the
+  /// [destination] - which can either be an application or a dialplan context.
+  Future<LiveChannel> originateChannel({
+    required String endpoint,
+    required OriginateDestination destination,
+    String? callerId,
+    Duration? timeout = const Duration(seconds: 30),
+    String? channelId,
+    String? otherChannelId,
+    String? originator,
+    String? formats,
+    Map<String, String>? variables,
+  });
+
+  /// Loads the byte contents of a stored recording.
+  ByteStream loadStoredRecording(String name);
 }

@@ -1,6 +1,6 @@
 name: asterisk
 description: Idiomatic bindings to Asterisk's REST interface, allowing calls to be managed in Dart.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/simolus3/asterisk.dart
 topics:
   - asterisk

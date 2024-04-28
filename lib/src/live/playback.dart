@@ -16,4 +16,22 @@ final class LivePlayback extends LiveObject<Playback> {
       update(playback);
     }
   }
+
+  /// Stops this playback.
+  Future<void> stop() async {
+    await asterisk.api.playbacks.stop(latestSnapshot.id);
+  }
+
+  /// Sends the [PlaybackControl] command to this playback.
+  Future<void> control(PlaybackControl control) async {
+    await asterisk.api.playbacks.control(latestSnapshot.id, control.name);
+  }
+}
+
+enum PlaybackControl {
+  restart,
+  pause,
+  unpause,
+  reverse,
+  forward,
 }

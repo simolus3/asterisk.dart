@@ -108,4 +108,37 @@ final class AsteriskClient implements lib.Asterisk {
 
     return recognizeLiveObject(channel, (raw) => LiveChannel(this, raw, true));
   }
+
+  @override
+  Future<LiveChannel> originateChannel({
+    required String endpoint,
+    required OriginateDestination destination,
+    String? callerId,
+    Duration? timeout = const Duration(seconds: 30),
+    String? channelId,
+    String? otherChannelId,
+    String? originator,
+    String? formats,
+    Map<String, String>? variables,
+  }) async {
+    final channel = await api.channels.originate(
+      endpoint: endpoint,
+      destination: destination,
+      callerId: callerId,
+      channelId: channelId,
+      formats: formats,
+      originator: originator,
+      otherChannelId: otherChannelId,
+      timeout: timeout,
+      variables: variables,
+    );
+
+    return recognizeLiveObject(channel, (raw) => LiveChannel(this, raw, true));
+  }
+
+  @override
+  ByteStream loadStoredRecording(String name) {
+    return ByteStream(Stream.fromFuture(api.recordings.storedContents(name))
+        .asyncExpand((response) => response.stream));
+  }
 }

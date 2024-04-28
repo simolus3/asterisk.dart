@@ -34,6 +34,9 @@ final class AsteriskApi {
   /// Methods related to recordings: https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Recordings_REST_API/
   late final RecordingsApi recordings = RecordingsApi(this);
 
+  /// Methods related to playbacks: /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Playbacks_REST_API/
+  late final PlaybacksApi playbacks = PlaybacksApi(this);
+
   Future<StreamedResponse> _makeRequest({
     String method = 'GET',
     Map<String, String>? queryParameters,
@@ -192,6 +195,48 @@ final class ChannelsApi {
 
   ChannelsApi(this._api);
 
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#originate
+  Future<Channel> originate({
+    required String endpoint,
+    required OriginateDestination destination,
+    String? callerId,
+    Duration? timeout = const Duration(seconds: 30),
+    String? channelId,
+    String? otherChannelId,
+    String? originator,
+    String? formats,
+    Map<String, String>? variables,
+  }) {
+    return _api._jsonCall(
+      path: 'channels',
+      fromJson: Channel.fromJson,
+      method: 'POST',
+      body: {
+        'endpoint': endpoint,
+        ...switch (destination) {
+          OriginateIntoDialplan() => {
+              'extension': destination.extension,
+              if (destination.context != null) 'context': destination.context,
+              if (destination.priority != null)
+                'priority': destination.priority,
+              if (destination.label != null) 'label': destination.label,
+            },
+          OriginateIntoApplication() => {
+              'app': destination.app,
+              'appArgs': destination.appArgs,
+            },
+        },
+        if (callerId != null) 'callerId': callerId,
+        'timeout': timeout?.inSeconds ?? -1,
+        if (channelId != null) 'channelId': channelId,
+        if (otherChannelId != null) 'otherChannelId': otherChannelId,
+        if (originator != null) 'originator': originator,
+        if (formats != null) 'formats': formats,
+        if (variables != null) 'variables': variables,
+      },
+    );
+  }
+
   /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Channels_REST_API/#create
   Future<Channel> createChannel({
     required String endpoint,
@@ -321,4 +366,51 @@ class RecordingsApi {
       queryParameters: {'recordingName': recordingName},
     );
   }
+}
+
+/// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Playbacks_REST_API/
+final class PlaybacksApi {
+  final AsteriskApi _api;
+
+  PlaybacksApi(this._api);
+
+  /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Playbacks_REST_API/#stop
+  Future<void> stop(String id) async {
+    await _api._makeRequest(path: 'playbacks/$id', method: 'DELETE');
+  }
+
+  /// /// https://docs.asterisk.org/Latest_API/API_Documentation/Asterisk_REST_Interface/Playbacks_REST_API/
+  Future<void> control(String id, String operation) async {
+    await _api._makeRequest(
+      path: 'playbacks/$id/control',
+      method: 'POST',
+      queryParameters: {'operation': operation},
+    );
+  }
+}
+
+/// Valid destinations for [ChannelsApi.originate] - originated channels can
+/// either be placed into the configured dialplan ([OriginateIntoDialplan]) or
+/// into an application ([OriginateIntoApplication]).
+sealed class OriginateDestination {}
+
+final class OriginateIntoDialplan implements OriginateDestination {
+  final String extension;
+  final String? context;
+  final int? priority;
+  final String? label;
+
+  OriginateIntoDialplan({
+    required this.extension,
+    this.context,
+    this.priority,
+    this.label,
+  });
+}
+
+final class OriginateIntoApplication implements OriginateDestination {
+  final String app;
+  final String appArgs;
+
+  OriginateIntoApplication({required this.app, required this.appArgs});
 }
