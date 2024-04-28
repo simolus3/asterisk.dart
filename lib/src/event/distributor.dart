@@ -30,12 +30,18 @@ final class AsteriskEvents {
     _channelSubscription = _asterisk.channel.stream.listen((event) {
       _logger.finest(() => 'Incoming: $event');
 
-      final message =
-          Message.fromJson(json.decode(event as String) as JsonObject);
-      if (message is Event) {
-        _dispatchEvent(message);
-      } else {
-        _logger.fine('Saw non-event message: $message');
+      try {
+        final message =
+            Message.fromJson(json.decode(event as String) as JsonObject);
+        if (message is Event) {
+          _dispatchEvent(message);
+        } else {
+          _logger.fine('Saw non-event message: $message');
+        }
+      } catch (e, s) {
+        for (final global in _globalListeners) {
+          global.addError(e, s);
+        }
       }
     });
   }

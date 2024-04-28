@@ -87,6 +87,13 @@ abstract interface class Asterisk {
     );
   }
 
+  /// A future completing when the web socket channel to Asterisk has been
+  /// set up.
+  ///
+  /// Asterisk is using web socket to notify clients about incoming events, so
+  /// this package is setting up a web socket connection automatically.
+  Future<void> get webSocketReady;
+
   /// Closes pending requests and the web socket notification to Asterisk.
   ///
   /// This does not automatically hang up channels or other Asterisk resources

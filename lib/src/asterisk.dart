@@ -46,8 +46,12 @@ final class AsteriskClient implements lib.Asterisk {
   }
 
   @override
+  Future<void> get webSocketReady => channel.ready;
+
+  @override
   Future<void> close() async {
     _ownedClient?.close();
+    await channel.sink.close(1001);
   }
 
   L recognizeLiveObject<L extends LiveObject<R>, R extends EventSource>(
