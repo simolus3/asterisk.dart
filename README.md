@@ -40,23 +40,6 @@ Of course, you could use [Flutter WebRTC](https://flutter-webrtc.org/) to write
 a voice-enabled Flutter app that can be called through an Asterisk managed
 by this package.
 
-The following features from the Asterisk RESTful interface are supported from
-this package:
-
-- Reacting to events from channels, bridges, recordings, playbacks, endpoints
-  and so on in a reactive way (exposed as a Dart `Stream`).
-- Calls:
-  - Receiving incoming calls through `STASIS` in a dialplan.
-  - Setting the ringing state, accepting and rejecting calls.
-  - Making outgoing calls.
-  - Playing sounds.
-  - Starting recordings.
-- Bridges:
-  - Can be created, watched and destroyed.
-  - Channels can be added and removed out of bridges.
-- Endpoints:
-  - Can be listed and watched
-
 ## Getting started
 
 Using this package requires a running Asterisk server. To interact with the

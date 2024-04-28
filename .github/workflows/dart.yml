@@ -1,0 +1,63 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  schedule:
+    # Make sure everything is still working by running the CI weekly.
+    - cron: "0 5 * * 1"
+
+jobs:
+  analyze:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        dart-sdk: [stable]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.dart-sdk }}
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PUB_CACHE }}
+            pubspec.lock
+          key: dart-tool-${{ matrix.dart-sdk }}-${{ hashFiles('pubspec.yaml') }}
+
+      - name: "Install dependencies"
+        run: dart pub upgrade
+
+      - name: "Ensure formatted"
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: "Analyze project"
+        run: dart analyze --fatal-infos
+
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        dart-sdk: [stable]
+    runs-on: ${{ matrix.os }}
+    # analyze creates the cache, avoid downloading dependencies again here
+    needs: analyze
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.dart-sdk }}
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: dart-tool-${{ matrix.dart-sdk }}-${{ hashFiles('pubspec.yaml') }}
+
+      - name: "Get dependencies"
+        run: dart pub get
+
+      - name: "Run tests"
+        run: dart test -P ci_unit_tests

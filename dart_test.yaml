@@ -1,0 +1,9 @@
+tags:
+  skip_during_development:
+    skip: "Skipping outside of CI"
+
+presets:
+  ci_unit_tests:
+    tags:
+      skip_during_development:
+        skip: false
