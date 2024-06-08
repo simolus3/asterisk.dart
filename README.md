@@ -52,10 +52,10 @@ browser thanks to WebRTC.
 To get started, run
 
 ```
-docker run -ti --network host ghcr.io/simolus3/asterisk_demo:latest
+docker run -ti --network host europe-docker.pkg.dev/simonbinder/public/asterisk_demo:latest
 ```
 
-Starting asterisk will print a lot of errors as it tires to load a lot of
+Starting asterisk will print a lot of errors as it tries to load a lot of
 modules we don't need - once it prints "Asterisk Ready.", the system is ready
 to go.
 
